@@ -1,3 +1,7 @@
+#!/bin/python
+# Draws a 'fractal' tiling, inspired by /u/graaahh
+# http://www.reddit.com/r/CasualMath/comments/230d5s/i_made_this_interesting_pattern_is_it_a_fractal/
+
 import math
 import turtle
 import collections
@@ -9,45 +13,23 @@ horizLen = diagLen * math.sqrt(2) / 2.0;
 
 turtle.speed(0)
 
-def drawLeg(depth, turns):
-    curTree = "";
-    if depth > maxDepth:
-        return ""
-    curTree +=("[lf")
-    if(turns > 0):
-        if(turns <= depth/2.0 ):
-            curTree +=drawLeg(depth+1, turns + 1)
-    else:
-        curTree += drawLeg(depth+1, 1)
-    curTree +=("][rf")
-    if(turns < 0):
-        if(turns >= -1 * (depth/2.0 )):
-            curTree +=drawLeg(depth+1,-1)
-    else:
-        curTree+=drawLeg(depth+1,-1)
-    curTree +=("]")
-    return curTree
-
-
 def drawBranch(depth, turns):
     if depth > maxDepth:
         return ""
-    
-    pd = int(depth/2 + 1)
 
-    if(len(turns) >= pd):
-        print(turns, turns[-pd:])
+    #approximation of the "collision" step.
+    #if we go left too often, we're bound to have hit something
+    pd = int(depth/2 + 1)
     if pd > 1 and (len(turns) >= pd and (turns[-pd:] == "l"*pd or turns[-pd:] == "r"*pd)):
         return ""
-    curTree =""
-    curTree+="[lf"
+    curTree="[lf"
     curTree+=drawBranch(depth+1,turns+"l")
     curTree+="][rf"
     curTree+=drawBranch(depth+1,turns+"r")
     curTree+="]"
     return curTree
 
-#state machine
+#Keep track of where the turtle was for later
 def pushState():
     state = State(turtle.pos(), turtle.heading())
     stateStack.append(state)
@@ -55,7 +37,10 @@ def popState():
     state=stateStack.pop()
     turtle.setpos(state.pos)
     turtle.seth(state.heading)
-    
+   
+#For each character in the L-string, command the turtle.
+#Not a true L-system, right now we can't change the string while parsing
+# http://en.wikipedia.org/wiki/L-system
 def consumeLSystem(lString):
     for k in lString:
         if k =="l":
@@ -73,7 +58,8 @@ def consumeLSystem(lString):
             pushState()
         if k =="]":
             popState()
-            
+
+#Draw four branches
 myTree = "[f" + drawBranch(0,"") + "]rr"
 myTree += myTree + myTree + myTree
 print(myTree)
